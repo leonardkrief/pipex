@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/20 16:17:48 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/20 17:13:53 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,16 @@ void	*err_out(const char *str, void *to_be_free, void *value)
 	return (value);
 }
 
-char	*whereis(const char *cmd, char **environ)
+// Je crois qu'il y a une difference mac vs linux pour obtenir le pathname
+// MAC       --------->      whereis  -bq <cmd>
+// LINUX    je crois que     which <cmd>
+// A verifier et voir si je peux rendre le code adaptatif ?
+char	*get_pathname(const char *cmd, char **environ)
 {
 	int		fd[2];
 	pid_t	pid;
 	char	*output;
-	char	*vect[] = {"/usr/bin/whereis", (char *)cmd, NULL};
+	char	*vect[] = {"/usr/bin/whereis", "-bq", (char *)cmd, NULL};
 
 	if (pipe(fd) == -1)
 		return (err_out("Piping failed", NULL, NULL));
@@ -46,39 +50,17 @@ char	*whereis(const char *cmd, char **environ)
 	return (output);
 }
 
-char	*pathname(const char *cmd, char **environ)
-{
-	int		i;
-	char	*output;
-	char	*tmp;
-	char	**stock;
-
-	output = whereis(cmd, environ);
-	tmp = ft_strtrim(output, cmd);
-	if (output)
-		free(output);
-	output = ft_strtrim(tmp, ":");
-	if (tmp)
-		free(tmp);
-	stock = ft_split(output, ' ');
-	if (output)
-		free(output);
-	if (stock)
-	{
-		output = ft_strdup(stock[0]);
-		i = -1;
-		while (stock[++i])
-			free(stock[i]);
-		free(stock);
-	}
-	return (output);
-}
 int	main(int argc, char **argv, char **environ)
 {
+	int		i = -1;
 	char	*path;
 
-	path = pathname(argv[1], environ);
+	if (argc && argv)
+		path= NULL;
+	path = get_pathname(argv[1], environ);
 	printf("%s", path);
+	while (environ[++i])
+		printf("%d : %s\n", i, environ[i]);
 	// char *vect[] = {"/bin/ls", ".", NULL};
 	// execve("/bin/ls", vect, environ);
 }

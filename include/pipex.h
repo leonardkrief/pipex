@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/20 15:17:53 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/20 17:14:05 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,6 @@
 #include "get_next_line.h"
 
 void	*err_out(const char *str, void *to_be_free, void *value);
-char	*pathname(const char *cmd, char **environ);
+char	*get_pathname(const char *cmd, char **environ);
 
 #endif
