@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/20 17:13:53 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/21 10:57:29 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,8 @@ char	*get_pathname(const char *cmd, char **environ)
 	if (pipe(fd) == -1)
 		return (err_out("Piping failed", NULL, NULL));
 	pid = fork();
-	// faut il proteger le fork ?
+	if (pid == -1)
+		return (err_out("Forking failed", NULL, NULL));
 	if (pid == 0)
 	{
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
@@ -42,25 +43,47 @@ char	*get_pathname(const char *cmd, char **environ)
 		if (close(fd[0]) == -1 || close(fd[1]) == -1)
 			return (err_out("Close failed", NULL, NULL));
 		execve("/usr/bin/whereis", vect, environ);
+		return (0);
 	}
-	waitpid(pid, NULL, 0);
-	output = get_next_line(fd[0]);
-	if (close(fd[0]) == -1 || close(fd[1]) == -1)
-		return (err_out("Close failed", output, NULL));
-	return (output);
+	else
+	{
+		waitpid(pid, NULL, 0);
+		output = get_next_line(fd[0]);
+		if (close(fd[0]) == -1 || close(fd[1]) == -1)
+			return (err_out("Close failed", output, NULL));
+		return (output);
+	}
 }
 
-int	main(int argc, char **argv, char **environ)
+// int	valid_cmds(char **cmds)
+// {
+// 	while (cmds[i])
+// }
+
+int	main(int ac, const char **av, char **environ)
 {
+	// int		i;
+	// char	*cmds[ac];
+
+	// if (ac == 4)
+	// {
+	// 	if (access(av[1], F_OK && R_OK) == -1 || access(av[ac], W_OK) == -1)
+	// 		return (1);
+	// 	i = 1;
+	// 	while (++i < ac)
+	// 		cmds[i - 2] = get_pathname(av[i], environ);
+	// 	if (valid_cmds(cmds, ac))
+	// 	{
+
+	// 	}
+	// }
 	int		i = -1;
 	char	*path;
 
-	if (argc && argv)
+	if (ac && av)
 		path= NULL;
-	path = get_pathname(argv[1], environ);
+	path = get_pathname(av[1], environ);
 	printf("%s", path);
 	while (environ[++i])
 		printf("%d : %s\n", i, environ[i]);
-	// char *vect[] = {"/bin/ls", ".", NULL};
-	// execve("/bin/ls", vect, environ);
 }
