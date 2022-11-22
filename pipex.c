@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/22 18:43:56 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/22 18:51:43 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,12 +99,12 @@ int	main(int ac, char **av, char **ev)
 	int		i;
 	t_infos	*infos;
 
-	i = 0;
 	infos = get_infos(ac, av, ev);
 	if (dup2(infos->infile, STDIN_FILENO) == -1)
 		free_infos(infos, -6);
 	if (close(infos->infile) == -1)
 		free_infos(infos, -7);
+	i = 1;
 	while (++i < infos->ac - 1)
 		exec_process(infos, i);
 	i = 0;
