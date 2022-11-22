@@ -6,84 +6,115 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/21 10:57:29 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/22 18:43:56 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "include/pipex.h"
 
-void	*err_out(const char *str, void *to_be_free, void *value)
+// A l'etape n, on a besoin de lire fd[n][0] et d'ecrire dans
+// fd[n + 1][1]. Cette fonction ferme tous les autres pipes
+// Renvoie -1 en cas d'erreur
+int	close_pipes(t_infos *infos, int n)
 {
-	if (to_be_free)
-		free(to_be_free);
-	perror(str);
-	return (value);
-}
+	int	i;
+	int	exno;
 
-// Je crois qu'il y a une difference mac vs linux pour obtenir le pathname
-// MAC       --------->      whereis  -bq <cmd>
-// LINUX    je crois que     which <cmd>
-// A verifier et voir si je peux rendre le code adaptatif ?
-char	*get_pathname(const char *cmd, char **environ)
-{
-	int		fd[2];
-	pid_t	pid;
-	char	*output;
-	char	*vect[] = {"/usr/bin/whereis", "-bq", (char *)cmd, NULL};
-
-	if (pipe(fd) == -1)
-		return (err_out("Piping failed", NULL, NULL));
-	pid = fork();
-	if (pid == -1)
-		return (err_out("Forking failed", NULL, NULL));
-	if (pid == 0)
+	exno = 0;
+	i = -1;
+	while (++i < infos->ac - 1)
 	{
-		if (dup2(fd[1], STDOUT_FILENO) == -1)
-			return (err_out("Duplication failed", NULL, NULL));
-		if (close(fd[0]) == -1 || close(fd[1]) == -1)
-			return (err_out("Close failed", NULL, NULL));
-		execve("/usr/bin/whereis", vect, environ);
-		return (0);
+		if ((i != n) && (i != n + 1)
+			&& close((infos->fd)[i][0]) == -1
+			&& close((infos->fd)[i][1]) == -1)
+			exno = -1;
+		if (i == n && close((infos->fd)[i][1]) == -1
+			&& close((infos->fd)[i + 1][0]) == -1)
+			exno = -1;
 	}
-	else
-	{
-		waitpid(pid, NULL, 0);
-		output = get_next_line(fd[0]);
-		if (close(fd[0]) == -1 || close(fd[1]) == -1)
-			return (err_out("Close failed", output, NULL));
-		return (output);
-	}
+	return (exno);
 }
 
-// int	valid_cmds(char **cmds)
-// {
-// 	while (cmds[i])
-// }
-
-int	main(int ac, const char **av, char **environ)
+// recupere dans un split la commande de argv[n] avec ses options
+// et verifie que la commande existe. Renvoie NULL en cas d'erreur
+char	**get_cmd_split(t_infos *infos, int n)
 {
-	// int		i;
-	// char	*cmds[ac];
+	int		i;
+	char	*cmd;
+	char	**cmdopts;
 
-	// if (ac == 4)
-	// {
-	// 	if (access(av[1], F_OK && R_OK) == -1 || access(av[ac], W_OK) == -1)
-	// 		return (1);
-	// 	i = 1;
-	// 	while (++i < ac)
-	// 		cmds[i - 2] = get_pathname(av[i], environ);
-	// 	if (valid_cmds(cmds, ac))
-	// 	{
-
-	// 	}
-	// }
-	int		i = -1;
-	char	*path;
-
-	if (ac && av)
-		path= NULL;
-	path = get_pathname(av[1], environ);
-	printf("%s", path);
-	while (environ[++i])
-		printf("%d : %s\n", i, environ[i]);
+	cmdopts = ft_split(infos->av[n], ' ');
+	if (!cmdopts)
+		return (NULL);
+	if (!access(cmdopts[0], F_OK) && !access(cmdopts[0], X_OK))
+		return (cmdopts);
+	i = -1;
+	cmd = ft_strdup(cmdopts[0]);
+	while (cmd && infos->paths[++i])
+	{
+		if (cmdopts[0])
+			free(cmdopts[0]);
+		cmdopts[0] = ft_strjoin(infos->paths[i], cmd);
+		if (!access(cmdopts[0], F_OK) && !access(cmdopts[0], X_OK))
+		{
+			free(cmd);
+			return (cmdopts);
+		}
+	}
+	if (cmd)
+		free(cmd);
+	return (free_tab((void **) cmdopts, -1));
 }
+
+void	exec_process(t_infos *infos, int i)
+{
+	char	**cmdopts;
+
+	cmdopts = get_cmd_split(infos, i);
+	if (!cmdopts)
+		free_infos(infos, -5);
+	infos->pids[i] = fork();
+	if (infos->pids[i] == 0)
+	{
+		close_pipes(infos, i);
+		if (dup2(infos->fd[i][0], STDIN_FILENO) == -1
+			|| dup2(infos->fd[i + 1][1], STDOUT_FILENO) == -1)
+			free_tab((void **) cmdopts, -1);
+		// if (close(infos->fd[i][0]) == - 1
+		// 	|| close(infos->fd[i + 1][1]) == -1)
+		// 	free_tab((void **) cmdopts, -1);
+		if (!cmdopts)
+			free_infos(infos, -6);
+		if (execve(cmdopts[0], cmdopts, infos->ev) == -1)
+		{
+			free_tab((void **) cmdopts, -1);
+			free_infos(infos, -6);
+		}
+	}
+	free_tab((void **) cmdopts, -1);
+}
+
+int	main(int ac, char **av, char **ev)
+{
+	int		i;
+	t_infos	*infos;
+
+	i = 0;
+	infos = get_infos(ac, av, ev);
+	if (dup2(infos->infile, STDIN_FILENO) == -1)
+		free_infos(infos, -6);
+	if (close(infos->infile) == -1)
+		free_infos(infos, -7);
+	while (++i < infos->ac - 1)
+		exec_process(infos, i);
+	i = 0;
+	while (++i < infos->ac - 1)
+		waitpid(infos->pids[i], NULL, 0);
+	
+	char	buff[1000];
+	buff[999] = 0;
+	read(infos->fd[infos->ac - 1][0], buff, 999);
+	write(2, buff, 999);
+	return (0);
+}
+
