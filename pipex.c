@@ -6,15 +6,15 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/22 18:51:43 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/23 02:34:17 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "include/pipex.h"
 
-// A l'etape n, on a besoin de lire fd[n][0] et d'ecrire dans
-// fd[n + 1][1]. Cette fonction ferme tous les autres pipes
-// Renvoie -1 en cas d'erreur
+// si n >= 0, ferme tous les pipes sauf fd[n][0] et fd[n + 1][1]
+// si n < 0,  ferme tous les pipes sauf le read du dernier
+// renvoie -1 en cas d'erreur
 int	close_pipes(t_infos *infos, int n)
 {
 	int	i;
@@ -22,14 +22,22 @@ int	close_pipes(t_infos *infos, int n)
 
 	exno = 0;
 	i = -1;
-	while (++i < infos->ac - 1)
+	if (n >= 0)
 	{
-		if ((i != n) && (i != n + 1)
-			&& close((infos->fd)[i][0]) == -1
-			&& close((infos->fd)[i][1]) == -1)
+		while (++i < infos->ac - 2)
+		{
+			if (i != n && close((infos->fd)[i][0]) == -1)
+				exno = -1;
+			if (i != n + 1 && close((infos->fd)[i][1]) == -1)
+				exno = -1;
+		}
+		return (exno);
+	}
+	while (++i < infos->ac - 2)
+	{
+		if (i < (infos->ac - 3) && close((infos->fd)[i][0]) == -1)
 			exno = -1;
-		if (i == n && close((infos->fd)[i][1]) == -1
-			&& close((infos->fd)[i + 1][0]) == -1)
+		if (close((infos->fd)[i][1]) == -1)
 			exno = -1;
 	}
 	return (exno);
@@ -63,35 +71,42 @@ char	**get_cmd_split(t_infos *infos, int n)
 	}
 	if (cmd)
 		free(cmd);
-	return (free_tab((void **) cmdopts, -1));
+	return (free_tab(cmdopts, -1));
 }
 
 void	exec_process(t_infos *infos, int i)
 {
 	char	**cmdopts;
 
-	cmdopts = get_cmd_split(infos, i);
+	cmdopts = get_cmd_split(infos, i + 2);
 	if (!cmdopts)
-		free_infos(infos, -5);
+		free_infos(infos, -5, "Invalid command or malloc failed");
 	infos->pids[i] = fork();
+	if (infos->pids[i] < 0)
+		free_infos(infos, -6, "Forking failed");
 	if (infos->pids[i] == 0)
 	{
-		close_pipes(infos, i);
+		close_pipes(infos, 0);
 		if (dup2(infos->fd[i][0], STDIN_FILENO) == -1
 			|| dup2(infos->fd[i + 1][1], STDOUT_FILENO) == -1)
-			free_tab((void **) cmdopts, -1);
-		// if (close(infos->fd[i][0]) == - 1
-		// 	|| close(infos->fd[i + 1][1]) == -1)
-		// 	free_tab((void **) cmdopts, -1);
+			free_tab(cmdopts, -1);
+		if (close(infos->fd[i][0]) == - 1 || close(infos->fd[i + 1][1]) == -1
+			|| close(infos->fd[i + 1][1]) == -1)
+			free_tab(cmdopts, -1);
 		if (!cmdopts)
-			free_infos(infos, -6);
+			free_infos(infos, -7, "Failed dup or close fd");
+		write(2, "aaaa\n", 10);
 		if (execve(cmdopts[0], cmdopts, infos->ev) == -1)
 		{
-			free_tab((void **) cmdopts, -1);
-			free_infos(infos, -6);
+			write(2, "bbbb\n", 10);
+			free_tab(cmdopts, -1);
+			free_infos(infos, -8, "Failed exec");
 		}
 	}
-	free_tab((void **) cmdopts, -1);
+	waitpid(infos->pids[i], NULL, 0);
+	write(2, "received\n", 10);
+	if (cmdopts)
+		free_tab(cmdopts, -1);
 }
 
 int	main(int ac, char **av, char **ev)
@@ -101,19 +116,17 @@ int	main(int ac, char **av, char **ev)
 
 	infos = get_infos(ac, av, ev);
 	if (dup2(infos->infile, STDIN_FILENO) == -1)
-		free_infos(infos, -6);
-	if (close(infos->infile) == -1)
-		free_infos(infos, -7);
+		free_infos(infos, -7, "Failed duping file descriptor");
+	// if (close(infos->infile) == -1)
+	// 	free_infos(infos, -7, "Failed closing file descriptor");
 	i = 1;
 	while (++i < infos->ac - 1)
-		exec_process(infos, i);
-	i = 0;
-	while (++i < infos->ac - 1)
-		waitpid(infos->pids[i], NULL, 0);
-	
+		exec_process(infos, i - 2);
+	close_pipes(infos, -1);
 	char	buff[1000];
 	buff[999] = 0;
-	read(infos->fd[infos->ac - 1][0], buff, 999);
+	int ret = -10;
+	ret = read(infos->fd[infos->ac - 3][0], buff, 999);
 	write(2, buff, 999);
 	return (0);
 }

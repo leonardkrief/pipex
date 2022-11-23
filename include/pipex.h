@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/22 18:46:41 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/23 02:34:11 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,8 @@ typedef struct s_infos{
 }	t_infos;
 
 //t_infos.c
-void	*free_tab(void **to_be_free, int n);
-void	free_infos(t_infos *infos, int exno);
+void	*free_tab(char **to_be_free, int n);
+void	free_infos(t_infos *infos, int exno, char *str);
 char	**get_paths(char **ev);
 int		get_pipes(t_infos *infos);
 t_infos	*get_infos(int ac, char **av, char **ev);

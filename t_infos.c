@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/22 18:41:47 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/23 02:34:48 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 // si n<0, le tab se finit par NULL donc on free tranquille
 // sinon, on free jusqua ce que i = n
-void	*free_tab(void **to_be_free, int n)
+void	*free_tab(char **to_be_free, int n)
 {
 	int	i;
 
@@ -36,31 +36,20 @@ void	*free_tab(void **to_be_free, int n)
 	return (NULL);
 }
 
-void	free_infos(t_infos *infos, int exno)
+void	free_infos(t_infos *infos, int exno, char *str)
 {
-	if (exno < -1 || exno == 1)
-		free_tab((void **) infos->paths, -1);
-	if (exno < -2 || exno == 1)
+	if (exno < -1 || exno == 0)
+		free_tab(infos->paths, -1);
+	if (exno < -2 || exno == 0)
 		close(infos->infile);
-	if (exno < -3 || exno == 1)
+	if (exno < -3 || exno == 0)
 		close(infos->outfile);
 	free(infos);
 	if (exno == -1)
-		perror("Failed to create PATHS variable");
-	else if (exno == -2)
-		perror("Failed to open the infile");
-	else if (exno == -3)
-		perror("Failed to open or create the outfile");
-	else if (exno == -4)
-		perror("Failed to create all the pipes");
-	else if (exno == -5)
-		perror("Invalid command or malloc failed");
-	else if (exno == -6)
-		perror("Failed duplicating file descriptor");
-	else if (exno == -7)
-		perror("Failed closing file descriptor");
-	if (exno < 0)
+	{
+		perror(str);
 		exit(-1);
+	}
 }
 
 // recupere toutes les valeurs de PATHS dans un split et ajoute un '/'
@@ -100,7 +89,7 @@ int	get_pipes(t_infos *infos)
 	int	j;
 
 	i = -1;
-	while (++i < infos->ac - 1)
+	while (++i < infos->ac - 2)
 	{
 		if (pipe((infos->fd)[i]) == -1)
 		{
@@ -128,14 +117,14 @@ t_infos	*get_infos(int ac, char **av, char **ev)
 	infos->ev = ev;
 	infos->paths = get_paths(ev);
 	if (infos->paths == NULL)
-		free_infos(infos, -1);
+		free_infos(infos, -1, "Failed to create PATHS variable");
 	infos->infile = open(av[1], O_RDONLY);
 	if (infos->infile == -1)
-		free_infos(infos, -2);
+		free_infos(infos, -2, "Failed to open the infile");
 	infos->outfile = open(av[ac - 1], O_RDWR | O_CREAT, 0644);
 	if (infos->outfile == -1)
-		free_infos(infos, -3);
+		free_infos(infos, -3, "Failed to open or create the outfile");
 	if (get_pipes(infos) == -1)
-		free_infos(infos, -4);
+		free_infos(infos, -4, "Failed to create all the pipes");
 	return (infos);
 }
