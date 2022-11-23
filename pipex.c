@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/23 04:22:38 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/23 05:20:09 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,6 @@ void	exec_process(t_infos *infos, int i)
 			free_infos(infos, -8, "Failed exec");
 		}
 	}
-	waitpid(infos->pids[i], NULL, 0);
 	write(2, "received\n", 10);
 	if (cmdopts)
 		free_tab(cmdopts, -1);
@@ -126,8 +125,11 @@ int	main(int ac, char **av, char **ev)
 	char	buff[1000];
 	buff[999] = 0;
 	int ret = -10;
-	ret = read(infos->fd[infos->ac - 3][0], buff, 999);
-	write(2, buff, 999);
+	// ret = read(infos->fd[infos->ac - 3][0], buff, 999);
+	//write(2, buff, 999);
+
+	while (++i < infos->ac - 1)
+		wait(NULL);
 	return (0);
 }
 
