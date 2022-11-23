@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/23 02:34:17 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/23 04:22:38 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ void	exec_process(t_infos *infos, int i)
 		if (dup2(infos->fd[i][0], STDIN_FILENO) == -1
 			|| dup2(infos->fd[i + 1][1], STDOUT_FILENO) == -1)
 			free_tab(cmdopts, -1);
-		if (close(infos->fd[i][0]) == - 1 || close(infos->fd[i + 1][1]) == -1
+		if (close(infos->fd[i][0]) == - 1
 			|| close(infos->fd[i + 1][1]) == -1)
 			free_tab(cmdopts, -1);
 		if (!cmdopts)
