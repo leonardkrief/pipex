@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/24 20:09:28 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/25 13:22:40 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,9 +121,7 @@ t_infos	*get_infos(int ac, char **av, char **ev)
 	infos->infile = open(av[1], O_RDONLY);
 	if (infos->infile == -1)
 		free_infos(infos, -2, "Failed to open the infile");
-	// je check avec le flag rdwr mais peut etre quon doit seulement pouvoir wr
-	// dans outfile ?
-	infos->outfile = open(av[ac - 1], O_RDWR | O_CREAT, 0644);
+	infos->outfile = open(av[ac - 1], O_WRONLY | O_CREAT, 0644);
 	if (infos->outfile == -1)
 		free_infos(infos, -3, "Failed to open or create the outfile");
 	if (get_pipes(infos) == -1)

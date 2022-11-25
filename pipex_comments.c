@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_comments.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/25 13:04:36 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/25 14:09:27 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,18 +87,21 @@ void	exec_process(t_infos *infos, int i)
 		free_infos(infos, -6, "Forking failed");
 	if (infos->pids[i] == 0)
 	{
-		close_pipes(infos, i);
+		if (close_pipes(infos, i) == -1)
+			fprintf(stderr, "(%d)Error closing files\n", i);
 		if (i == 0)
 		{
-			dup2(infos->infile, STDIN_FILENO);
-			close(infos->infile);
-			fprintf(stderr, "(%d)Dupped infile to stdin\n", i);
+			if (dup2(infos->infile, STDIN_FILENO) == -1)
+				fprintf(stderr, "(%d)Failed dupping infile to stdin\n", i);
+			if (close(infos->infile) == -1)
+				fprintf(stderr, "(%d)Failed closing infile\n", i);
 		}
 		else
 		{
-			dup2(infos->fd[i - 1][0], STDIN_FILENO);
-			close(infos->fd[i - 1][0]);
-			fprintf(stderr, "(%d)Dupped fd[%d][0] to stdin\n", i, i - 1);
+			if (dup2(infos->fd[i - 1][0], STDIN_FILENO) == -1)
+				fprintf(stderr, "(%d)Dupped fd[%d][0] to stdin\n", i, i - 1);
+			if (close(infos->fd[i - 1][0]))
+				fprintf(stderr, "(%d)Failed closing fd[%d][0]\n", i, i - 1);
 		}
 		if (i == infos->ac - 4)
 		{
