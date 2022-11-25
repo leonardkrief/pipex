@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/23 02:34:11 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/24 22:09:03 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int		get_pipes(t_infos *infos);
 t_infos	*get_infos(int ac, char **av, char **ev);
 
 //pipex.c
-int		close_pipes(t_infos *infos, int n);
+//int		close_pipes(t_infos *infos, int n);
 
 //utils.c
 void	print_infos(t_infos *infos);
