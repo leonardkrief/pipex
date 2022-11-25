@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/25 14:16:24 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/25 19:41:28 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,9 @@
 # include <sys/wait.h>
 # include <fcntl.h>
 # include "../libft/libft.h"
-# include "../ft_printf/includes/ft_printf.h"
+# include <errno.h>
 
-# ifndef PROCESS_NUM
-#  define PROCESS_NUM 1000
-# endif
+# define PROCESS_NUM 1024
 
 typedef struct s_infos{
 	int		ac;
@@ -44,12 +42,12 @@ char	**get_paths(char **ev);
 int		get_pipes(t_infos *infos);
 t_infos	*get_infos(int ac, char **av, char **ev);
 
+char	*get_shell(char **ev);
+
 //pipex.c
 int		close_pipes(t_infos *infos, int n);
 char	**get_cmd_split(t_infos *infos, int n);
 void	exec_cmd(t_infos *infos, char **cmdopts, int i);
 void	exec_process(t_infos *infos, int i);
 
-//utils.c
-void	print_infos(t_infos *infos);
 #endif

@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/25 13:22:40 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/25 19:43:50 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,22 +38,25 @@ void	*free_tab(char **to_be_free, int n)
 
 void	free_infos(t_infos *infos, int exno, char *str)
 {
+	if (exno == -1)
+		errno = 1;
 	if (exno < -1 || exno == 0)
 		free_tab(infos->paths, -1);
-	if (exno < -2 || exno == 0)
-		close(infos->infile);
-	if (exno < -3 || exno == 0)
-		close(infos->outfile);
+	if ((exno < -2 || exno == 0) && close(infos->infile) == -1)
+		perror("Failed to close infile\n");
+	if ((exno < -3 || exno == 0) && close(infos->outfile) == -1)
+		perror("Failed to close outfile\n");
 	free(infos);
-	if (exno == -1)
+	if (exno < 0)
 	{
-		perror(str);
+		if (str)
+			perror(str);
 		exit(-1);
 	}
 }
 
 // recupere toutes les valeurs de PATHS dans un split et ajoute un '/'
-// a la fin de toutes les valeurs. Cest utile pour get_cmd_split
+// a la fin de toutes les valeurs. cest utile pour get_cmd_split
 char	**get_paths(char **ev)
 {
 	int		i;
@@ -77,8 +80,7 @@ char	**get_paths(char **ev)
 			if (tmp)
 				free(tmp);
 		}
-		if (paths)
-			return (paths);
+		return (paths);
 	}
 	return (NULL);
 }
@@ -120,11 +122,11 @@ t_infos	*get_infos(int ac, char **av, char **ev)
 		free_infos(infos, -1, "Failed to create PATHS variable");
 	infos->infile = open(av[1], O_RDONLY);
 	if (infos->infile == -1)
-		free_infos(infos, -2, "Failed to open the infile");
+		free_infos(infos, -2, av[1]);
 	infos->outfile = open(av[ac - 1], O_WRONLY | O_CREAT, 0644);
 	if (infos->outfile == -1)
 		free_infos(infos, -3, "Failed to open or create the outfile");
 	if (get_pipes(infos) == -1)
-		free_infos(infos, -4, "Failed to create all the pipes");
+		free_infos(infos, -4, "Failed to create all pipes");
 	return (infos);
 }
