@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/25 19:43:50 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/26 20:30:07 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,21 +38,39 @@ void	*free_tab(char **to_be_free, int n)
 
 void	free_infos(t_infos *infos, int exno, char *str)
 {
-	if (exno == -1)
-		errno = 1;
-	if (exno < -1 || exno == 0)
-		free_tab(infos->paths, -1);
-	if ((exno < -2 || exno == 0) && close(infos->infile) == -1)
-		perror("Failed to close infile\n");
-	if ((exno < -3 || exno == 0) && close(infos->outfile) == -1)
-		perror("Failed to close outfile\n");
-	free(infos);
-	if (exno < 0)
+	if (infos)
 	{
-		if (str)
-			perror(str);
-		exit(-1);
+		if (exno < -1 || exno == 0)
+			free_tab(infos->paths, -1);
+		if ((exno == -2) && close(infos->infile) == -1)
+			perror("Failed to close infile");
+		if ((exno == -3) && close(infos->outfile) == -1)
+			perror("Failed to close outfile");
+		free(infos);
+		if (exno != 0)
+		{
+			if (str)
+				perror(str);
+			exit(-1);
+		}
 	}
+}
+
+void	free_tab_infos(char **cmdopts, t_infos *infos, int exno, char *str)
+{
+	fprintf(stderr, "cmd does not exist\n");
+	if (exno == 1) //si cmdopts[0] n'existe pas
+	{
+		fprintf(stderr, "cmd does not exist\n");
+		ft_putstr_fd(cmdopts[0], STDERR_FILENO);
+		ft_putstr_fd(": command not found\n", STDERR_FILENO);
+	}
+	if (exno == 2) // si un fichier n'existe pas
+		errno = 2;
+	if (exno == 3) // si un fichier ne donne pas les droits
+		errno = 13;
+	free_tab(cmdopts, -1);
+	free_infos(infos, exno, str);
 }
 
 // recupere toutes les valeurs de PATHS dans un split et ajoute un '/'
@@ -120,12 +138,6 @@ t_infos	*get_infos(int ac, char **av, char **ev)
 	infos->paths = get_paths(ev);
 	if (infos->paths == NULL)
 		free_infos(infos, -1, "Failed to create PATHS variable");
-	infos->infile = open(av[1], O_RDONLY);
-	if (infos->infile == -1)
-		free_infos(infos, -2, av[1]);
-	infos->outfile = open(av[ac - 1], O_WRONLY | O_CREAT, 0644);
-	if (infos->outfile == -1)
-		free_infos(infos, -3, "Failed to open or create the outfile");
 	if (get_pipes(infos) == -1)
 		free_infos(infos, -4, "Failed to create all pipes");
 	return (infos);
