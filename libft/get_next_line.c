@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/12 21:12:39 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 09:53:18 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 10:33:41 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,14 +91,12 @@ char	*one_line(char *buff, int fd)
 	return (res);
 }
 
-char	*get_next_line(int fd, int nb)
+char	*get_next_line(int fd)
 {
 	static char	buff[BUFFER_SIZE + 1];
 
 	if (BUFFER_SIZE < 1 || read(fd, NULL, 0) < 0)
 		return (NULL);
-	while (nb--)
-		write(0, "pipe ", 5);
-	write(0, "heredoc> ", 9);
+	write(0, "> ", 2);
 	return (one_line(buff, fd));
 }

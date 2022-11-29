@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/29 01:01:33 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 10:30:37 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 10:33:10 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,7 @@ void	here_doc(t_infos *infos, char *LIMITER, char *line)
 	infos->infile = open("here_doc", O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (infos->infile == -1)
 		free_infos(infos, -1, "Failed open");
-	line = get_next_line(0, infos->ac - 5);
+	line = get_next_line(0);
 	if (!line)
 		free_infos(infos, -1, "Failed malloc");
 	while (line && ft_strncmp(line, LIMITER, ft_strlen(line) - 1))
@@ -132,7 +132,7 @@ void	here_doc(t_infos *infos, char *LIMITER, char *line)
 			free_infos(infos, -1, "Failed write");
 		if (line)
 			free(line);
-		line = get_next_line(0, infos->ac - 5);
+		line = get_next_line(0);
 		if (!line)
 			free_infos(infos, -1, "Failed malloc");
 	}

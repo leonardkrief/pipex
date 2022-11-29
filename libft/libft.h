@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/25 01:50:07 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 09:55:29 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 10:33:51 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	ft_reset_buff(char *buff);
 char	*ft_strjoin_gnl(char const *res, char const *buff);
 void	aux_gnl(char **res, char *buff);
 char	*one_line(char *buff, int fd);
-char	*get_next_line(int fd, int nb);
+char	*get_next_line(int fd);
 
 # endif
 
