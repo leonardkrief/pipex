@@ -1,38 +1,39 @@
-SRCS		=	srcs/pipex.c \
-				srcs/t_infos.c \
-				srcs/here_doc.c \
+SRCS		=	srcs/water.c \
+				srcs/bread.c \
+				srcs/pipex.c \
 
-OBJS		=	${SRCS:.c=.o}
-INCLUDE		=	-I include
-LIBS		=	libft/libft.a
-NAME		=	pipex
+OBJS		= $(SRCS:.c=.o)
+DEPS		= $(SRCS:.c=.d)
+
 CC			=	cc
-RM			=	rm -f
 CFLAGS		=	-Wall -Wextra -Werror -g3
+INCLUDE		=	-I include
+PIPEX		=	pipex
+LIBS		=	libft/libft.a
+RM			=	rm -rf
 
-all:	${NAME}
+all:	${PIPEX}
 
 .c.o:
-		${CC} ${CFLAGS} ${INCLUDE} ${LIBS} -c $< -o ${<:.c=.o}
+		${CC} ${CFLAGS} ${INCLUDE} -c $< -o ${<:.c=.o}
 
-libs:	
-		make -C libft
-		make clean -C libft
+${PIPEX}:	${OBJS}
+			make -C libft
+			${CC} ${CFLAGS} ${OBJS} ${LIBS} -o ${PIPEX}
 
-${NAME}:	libs
-		${CC} ${CFLAGS} ${INCLUDE} ${SRCS} ${LIBS} -o ${NAME}
-
-bonus:		${NAME}
+bonus:	${PIPEX}
 
 clean:
-		make clean -C libft/
 		${RM} ${OBJS}
+		${RM} ${DEPS}
 
 fclean:	clean
+		${RM} ${PIPEX}
 		make fclean -C libft/
-		${RM} ${NAME}
 
 re:		fclean all
 
+-include : ${DEPS}
+
 .PHONY: all clean fclean re
-.SILENT:
+.SILENT
