@@ -6,20 +6,20 @@ OBJS		= $(SRCS:.c=.o)
 DEPS		= $(SRCS:.c=.d)
 
 CC			=	cc
-CFLAGS		=	-Wall -Wextra -Werror -g3
+CFLAGS		=	-Wall -Wextra -Werror -g3 -MMD -MP
 INCLUDE		=	-I include
 PIPEX		=	pipex
 LIBS		=	libft/libft.a
 RM			=	rm -rf
 
+${PIPEX}:	${OBJS}
+			make -C libft
+			${CC} ${CFLAGS} ${OBJS} ${LIBS} -o ${PIPEX}
+
 all:	${PIPEX}
 
 .c.o:
 		${CC} ${CFLAGS} ${INCLUDE} -c $< -o ${<:.c=.o}
-
-${PIPEX}:	${OBJS}
-			make -C libft
-			${CC} ${CFLAGS} ${OBJS} ${LIBS} -o ${PIPEX}
 
 bonus:	${PIPEX}
 
@@ -33,7 +33,6 @@ fclean:	clean
 
 re:		fclean all
 
--include : ${DEPS}
+-include ${DEPS}
 
-.PHONY: all clean fclean re
-.SILENT:
+.PHONY: all clean fclean re	
