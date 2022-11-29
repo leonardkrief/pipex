@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 05:51:07 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 07:48:08 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void	free_infos(t_infos *infos, int exno, char *str)
 
 	if (infos)
 	{
-		if (exno < -1 || exno == 0)
+		if (exno != -1)
 			free_tab(infos->paths, -1);
 		if ((exno == -2) && close(infos->infile) == -1)
 			perror("Failed to close infile");
@@ -78,20 +78,26 @@ void	*free_tab_str(char **to_be_free, char *str)
 // exno == 3 ou 5 si un fichier ne donne pas les droits
 void	free_tab_infos(char **cmdopts, t_infos *infos, int exno, char *str)
 {
-	if (exno == 1)
+	if (exno % 10 == 1)
 	{
 		ft_putstr_fd(cmdopts[0], STDERR_FILENO);
 		ft_putstr_fd(": command not found\n", STDERR_FILENO);
 	}
-	if (exno == 2 || exno == 4)
+	if (exno % 10 == 2 || exno % 10 == 4)
 		errno = 2;
-	if (exno == 3 || exno == 5)
+	if (exno % 10 == 3 || exno % 10 == 5)
 	{
 		errno = 13;
 		ft_putstr_fd("bash: ", STDERR_FILENO);
 	}
-	free_infos(infos, exno, str);
+	if (*(infos->i) == 2 && exno / 10 == 1 && close(infos->infile) == -1)
+		perror("Failed closing infile");
+	if (*(infos->i) == infos->ac - 2 && exno /10 >= 1 \
+		&& close(infos->outfile) == -1)
+		perror("Failed closing infile");
+	close_pipes(infos, -1);
 	free_tab(cmdopts, -1);
+	free_infos(infos, exno, str);
 }
 
 // recupere toutes les valeurs de PATHS dans un split et ajoute un '/'
@@ -142,7 +148,6 @@ int	get_pipes(t_infos *infos)
 			}
 			return (-1);
 		}
-		fprintf(stderr, "opened pipe %d\n", i);
 	}
 	return (0);
 }

@@ -1,1 +1,15 @@
-/mnt/nfs/homes/lkrief/42/pipex
+a.out
+bad_cmd
+bad_infile.txt
+bad_outfile.txt
+bibitest
+include
+infile.txt
+libft
+Makefile
+outfile.txt
+pipex
+pwd
+srcs
+test.c
+testeur.c

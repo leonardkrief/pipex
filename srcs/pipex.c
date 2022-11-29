@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 05:57:31 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 07:47:52 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ int	close_pipes(t_infos *infos, int n)
 	{
 		while (++i < infos->ac - 4)
 		{
+			
 			if (i != n - 1 && close((infos->fd)[i][0]) == -1)
 				exno = -1;
 			if (i != n && close((infos->fd)[i][1]) == -1)
@@ -80,29 +81,31 @@ void	exec_cmd(t_infos *infos, char **cmdopts, int i)
 	int	in;
 	int	out;
 
-	in = (i == 0) * infos->infile + (i > 0) * infos->fd[i - 1][0];
-	out = (i < infos->ac - 4) * infos->fd[i][1] \
-			+ (i == infos->ac - 4) * infos->outfile;
-	fprintf(stderr, "in = %d\n", in);
-	fprintf(stderr, "out = %d\n", out);
+	in = infos->infile;
+	if (i > 0)
+		in = infos->fd[i - 1][0];
+	out = infos->fd[i][1];
+	if (i == infos->ac - 4)
+		out = infos->outfile;	
+	fprintf(stderr, "[%d] checking for errors: cmdopts[0] = %s\n", getpid(), cmdopts[0]);
 	if (ft_strchr(cmdopts[0], '/') && access(cmdopts[0], F_OK) != 0)
-		free_tab_infos(cmdopts, infos, 2, cmdopts[0]);
+		free_tab_infos(cmdopts, infos, 12, cmdopts[0]);
 	else if (!ft_strchr(cmdopts[0], '/'))
-		free_tab_infos(cmdopts, infos, 1, NULL);
+		free_tab_infos(cmdopts, infos, 11, NULL);
 	if (access(cmdopts[0], X_OK) != 0)
-		free_tab_infos(cmdopts, infos, 2, NULL);
-	if (close_pipes(infos, i) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed closing pipes");
+		free_tab_infos(cmdopts, infos, 12, NULL);
 	if (dup2(in, STDIN_FILENO) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed duping file");
+		free_tab_infos(cmdopts, infos, 16, "Dup infile");
 	if (close(in) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed closing file");
+		free_tab_infos(cmdopts, infos, 16, "Infile");
 	if (dup2(out, STDOUT_FILENO) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed duping file");
+		free_tab_infos(cmdopts, infos, 27, "Dup outfile");
 	if (close(out) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed closing file");
-	if (execve(cmdopts[0], cmdopts, infos->ev) == -1)
-		free_tab_infos(cmdopts, infos, -4, "Failed exec");
+		free_tab_infos(cmdopts, infos, 27, "Outfile");
+	if (close_pipes(infos, i) == -1)
+		free_tab_infos(cmdopts, infos, -4, "Pipes");
+	execve(cmdopts[0], cmdopts, infos->ev);
+	free_tab_infos(cmdopts, infos, -4, "Exec");
 }
 
 void	check_in_n_out(char **cmdopts, t_infos *infos, int i)
@@ -115,7 +118,7 @@ void	check_in_n_out(char **cmdopts, t_infos *infos, int i)
 			free_tab_infos(cmdopts, infos, 5, infos->av[1]);
 		infos->infile = open(infos->av[1], O_RDONLY);
 		if (infos->infile == -1)
-			free_tab_infos(cmdopts, infos, -4, NULL);
+			free_tab_infos(cmdopts, infos, 10, NULL);
 	}
 	if (i == infos->ac - 4)
 	{
@@ -141,10 +144,11 @@ void	exec_process(t_infos *infos, int i)
 	{
 		if (!cmdopts)
 			free_tab_infos(cmdopts, infos, -4, "Malloc failed");
-		check_in_n_out(cmdopts, infos, i);
+		check_in_n_out(cmdopts, infos, i);		
 		exec_cmd(infos, cmdopts, i);
 	}
-	free_tab(cmdopts, -1);
+	if (cmdopts)
+		free_tab(cmdopts, -1);
 }
 
 int	main(int ac, char **av, char **ev)
@@ -160,6 +164,7 @@ int	main(int ac, char **av, char **ev)
 		if (infos->here_doc)
 			here_doc(infos, av[2], NULL);
 		i = 1;
+		infos->i = &i;
 		while (++i < infos->ac - 1)
 			exec_process(infos, i - 2);
 		if (close_pipes(infos, -1) == -1)

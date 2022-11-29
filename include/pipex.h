@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 05:09:04 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 07:28:52 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ typedef struct s_infos{
 	int		fd[PROCESS_NUM][2];
 	pid_t	pids[PROCESS_NUM];
 	int		here_doc;
+	int		*i;
 }	t_infos;
 
 //t_infos.c
