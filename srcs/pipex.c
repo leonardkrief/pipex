@@ -6,11 +6,11 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/26 20:32:41 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 05:57:31 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "include/pipex.h"
+#include "../include/pipex.h"
 
 // si n >= 0, ferme tous les pipes sauf fd[n - 1][0] et fd[n][1]
 // si n < 0,  ferme tous les pipes sauf le read du dernier
@@ -55,44 +55,42 @@ char	**get_cmd_split(t_infos *infos, int n)
 	cmdopts = ft_split(infos->av[n], ' ');
 	if (!cmdopts)
 		return (NULL);
-	if (access(cmdopts[0], F_OK | X_OK) == 0)
-		return (cmdopts);
 	i = -1;
 	cmd = ft_strdup(cmdopts[0]);
-	while (cmd && infos->paths[++i])
+	if (!cmd)
+		return (free_tab(cmdopts, -1));
+	while (cmd && cmd[0] != '/' && infos->paths[++i])
 	{
-		if (cmdopts[0])
-			free(cmdopts[0]);
+		free(cmdopts[0]);
 		cmdopts[0] = ft_strjoin(infos->paths[i], cmd);
+		if (!cmdopts[0])
+			return (free_tab_str(cmdopts, cmd));
 		if (access(cmdopts[0], F_OK | X_OK) == 0)
-		{
 			free(cmd);
+		if (access(cmdopts[0], F_OK | X_OK) == 0)
 			return (cmdopts);
-		}
 	}
-	if (cmd)
-		free(cmd);
-	return (free_tab(cmdopts, -1));
+	free(cmdopts[0]);
+	cmdopts[0] = cmd;
+	return (cmdopts);
 }
 
 void	exec_cmd(t_infos *infos, char **cmdopts, int i)
 {
 	int	in;
 	int	out;
-	
-	in = infos->infile;
-	if (i > 0)
-		in = infos->fd[i - 1][0];
-	out = infos->outfile;
-	if (i < infos->ac - 4)
-		 out = infos->fd[i][1];
-	fprintf(stderr, "(%d) check cmd exist : %s\n", i, cmdopts[0]);
-	if (access(cmdopts[0], F_OK) != 0)
+
+	in = (i == 0) * infos->infile + (i > 0) * infos->fd[i - 1][0];
+	out = (i < infos->ac - 4) * infos->fd[i][1] \
+			+ (i == infos->ac - 4) * infos->outfile;
+	fprintf(stderr, "in = %d\n", in);
+	fprintf(stderr, "out = %d\n", out);
+	if (ft_strchr(cmdopts[0], '/') && access(cmdopts[0], F_OK) != 0)
+		free_tab_infos(cmdopts, infos, 2, cmdopts[0]);
+	else if (!ft_strchr(cmdopts[0], '/'))
 		free_tab_infos(cmdopts, infos, 1, NULL);
-	fprintf(stderr, "(%d) check cmd exec\n", i);
 	if (access(cmdopts[0], X_OK) != 0)
 		free_tab_infos(cmdopts, infos, 2, NULL);
-	fprintf(stderr, "(%d) cmd exist + exec\n", i);
 	if (close_pipes(infos, i) == -1)
 		free_tab_infos(cmdopts, infos, -4, "Failed closing pipes");
 	if (dup2(in, STDIN_FILENO) == -1)
@@ -103,10 +101,32 @@ void	exec_cmd(t_infos *infos, char **cmdopts, int i)
 		free_tab_infos(cmdopts, infos, -4, "Failed duping file");
 	if (close(out) == -1)
 		free_tab_infos(cmdopts, infos, -4, "Failed closing file");
-	fprintf(stderr, "(%d) about to exec", i);
 	if (execve(cmdopts[0], cmdopts, infos->ev) == -1)
-		free_tab_infos(cmdopts, infos, -4, "ejkvlewji");
-	// faut il free_infos avant l'exec ??
+		free_tab_infos(cmdopts, infos, -4, "Failed exec");
+}
+
+void	check_in_n_out(char **cmdopts, t_infos *infos, int i)
+{
+	if (i == 0)
+	{
+		if (access(infos->av[1], F_OK) != 0)
+			free_tab_infos(cmdopts, infos, 2, infos->av[1]);
+		if (access(infos->av[1], R_OK) != 0)
+			free_tab_infos(cmdopts, infos, 5, infos->av[1]);
+		infos->infile = open(infos->av[1], O_RDONLY);
+		if (infos->infile == -1)
+			free_tab_infos(cmdopts, infos, -4, NULL);
+	}
+	if (i == infos->ac - 4)
+	{
+		if (access(infos->av[infos->ac - 1], F_OK) == 0
+			&& access(infos->av[infos->ac - 1], W_OK) != 0)
+			free_tab_infos(cmdopts, infos, 5, infos->av[infos->ac - 1]);
+		infos->outfile = open(infos->av[infos->ac - 1], \
+			O_WRONLY | O_TRUNC | O_CREAT, 0644);
+		if (infos->outfile == -1)
+			free_tab_infos(cmdopts, infos, -4, NULL);
+	}
 }
 
 void	exec_process(t_infos *infos, int i)
@@ -119,26 +139,9 @@ void	exec_process(t_infos *infos, int i)
 		free_infos(infos, -6, "Forking failed");
 	if (infos->pids[i] == 0)
 	{
-		
-		if (i == 0)
-		{
-			if (access(infos->av[1], F_OK) != 0)
-				free_tab_infos(cmdopts, infos, 2, NULL);
-			if (access(infos->av[1], R_OK) != 0)
-				free_tab_infos(cmdopts, infos, 3, NULL);
-			infos->infile = open(infos->av[1], O_RDONLY);
-			if (infos->infile == -1)
-				free_tab_infos(cmdopts, infos, -4, NULL);
-		}
-		if (i == infos->ac - 4)
-		{
-			if (access(infos->av[infos->ac - 1], F_OK) == 0
-				&& access(infos->av[infos->ac - 1], W_OK) != 0)
-				free_tab_infos(cmdopts, infos, 3, NULL);
-			infos->outfile = open(infos->av[infos->ac - 1], O_WRONLY | O_CREAT, 0644);
-			if (infos->outfile == -1)
-				free_tab_infos(cmdopts, infos, -4, NULL);
-		}
+		if (!cmdopts)
+			free_tab_infos(cmdopts, infos, -4, "Malloc failed");
+		check_in_n_out(cmdopts, infos, i);
 		exec_cmd(infos, cmdopts, i);
 	}
 	free_tab(cmdopts, -1);
@@ -152,6 +155,10 @@ int	main(int ac, char **av, char **ev)
 	if (ac >= 4)
 	{
 		infos = get_infos(ac, av, ev);
+		if (!infos)
+			exit(-1);
+		if (infos->here_doc)
+			here_doc(infos, av[2], NULL);
 		i = 1;
 		while (++i < infos->ac - 1)
 			exec_process(infos, i - 2);
@@ -160,10 +167,8 @@ int	main(int ac, char **av, char **ev)
 		i = -1;
 		while (++i < infos->ac - 3)
 			waitpid(infos->pids[i], NULL, 0);
-		// if (close(infos->infile) == -1)
-		// 	free_infos(infos, -7, "Failed closing file descriptor");
-		// if (close(infos->outfile) == -1)
-		// 	free_infos(infos, -7, "Failed closing file descriptor");
+		if (infos->here_doc)
+			unlink("here_doc");
 		free_infos(infos, 0, NULL);
 		return (0);
 	}

@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/25 01:50:07 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/19 20:53:36 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 04:39:09 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ size_t	ft_strlcat(char *restrict dst, const char *restrict src, size_t dstsiz);
 size_t	ft_strlcpy(char *restrict dst, const char *restrict src, size_t dstsiz);
 size_t	ft_strlen(const char *s);
 char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
+int		ft_strcmp(const char *s1, const char *s2);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 char	*ft_strnstr(const char *haystack, const char *needle, size_t len);
 char	*ft_strrchr(const char *s, int c);
@@ -76,7 +77,30 @@ t_list	*ft_lstlast(t_list *lst);
 t_list	*ft_lstmap(t_list *lst, void *(*f)(void *), void (*del)(void *));
 t_list	*ft_lstnew(void *content);
 int		ft_lstsize(t_list *lst);
-
 void	ft_lstprint(t_list *lst);
+
+/*********************/
+/****GET_NEXT_LINE****/
+/*********************/
+
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 1000
+# endif
+
+# include <unistd.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <fcntl.h>
+
+void	ft_reset_buff(char *buff);
+char	*ft_strjoin_gnl(char const *res, char const *buff);
+void	aux_gnl(char **res, char *buff);
+char	*one_line(char *buff, int fd);
+char	*get_next_line(int fd, int nb);
+
+#endif
 
 #endif

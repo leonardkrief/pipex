@@ -1,5 +1,6 @@
-SRCS		=	pipex.c \
-				t_infos.c \
+SRCS		=	srcs/pipex.c \
+				srcs/t_infos.c \
+				srcs/here_doc.c \
 
 OBJS		=	${SRCS:.c=.o}
 INCLUDE		=	-I include
@@ -7,7 +8,7 @@ LIBS		=	libft/libft.a
 NAME		=	pipex
 CC			=	cc
 RM			=	rm -f
-CFLAGS		=	-Wall -Wextra -Werror
+CFLAGS		=	-Wall -Wextra -Werror -g3
 
 all:	${NAME}
 
@@ -19,10 +20,9 @@ libs:
 		make clean -C libft
 
 ${NAME}:	libs
-			${CC} ${CFLAGS} ${INCLUDE} ${SRCS} ${LIBS} -o ${NAME}
+		${CC} ${CFLAGS} ${INCLUDE} ${SRCS} ${LIBS} -o ${NAME}
 
-debug:	libs
-		${CC} ${CFLAGS} -g3 ${INCLUDE} ${SRCS} ${LIBS} -o ${NAME}
+bonus:		${NAME}
 
 clean:
 		make clean -C libft/

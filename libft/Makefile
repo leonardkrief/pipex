@@ -18,6 +18,7 @@ SRCS		=	ft_atoi.c \
 				ft_putstr_fd.c \
 				ft_split.c \
 				ft_strchr.c \
+				ft_strcmp.c \
 				ft_strdup.c \
 				ft_striteri.c \
 				ft_strjoin.c \
@@ -32,6 +33,7 @@ SRCS		=	ft_atoi.c \
 				ft_substr.c \
 				ft_tolower.c \
 				ft_toupper.c \
+				get_next_line.c \
 
 SRCS_BONUS	= 	ft_lstadd_back.c \
 				ft_lstadd_front.c \
