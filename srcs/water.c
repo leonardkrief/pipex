@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   t_infos.c                                          :+:      :+:    :+:   */
+/*   water.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 16:31:37 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 07:48:08 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 09:50:32 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,83 +92,10 @@ void	free_tab_infos(char **cmdopts, t_infos *infos, int exno, char *str)
 	}
 	if (*(infos->i) == 2 && exno / 10 == 1 && close(infos->infile) == -1)
 		perror("Failed closing infile");
-	if (*(infos->i) == infos->ac - 2 && exno /10 >= 1 \
+	if (*(infos->i) == infos->ac - 2 && exno / 10 >= 1 \
 		&& close(infos->outfile) == -1)
 		perror("Failed closing infile");
 	close_pipes(infos, -1);
 	free_tab(cmdopts, -1);
 	free_infos(infos, exno, str);
-}
-
-// recupere toutes les valeurs de PATHS dans un split et ajoute un '/'
-// a la fin de toutes les valeurs. cest utile pour get_cmd_split
-char	**get_paths(char **ev)
-{
-	int		i;
-	char	*tmp;
-	char	**paths;
-
-	paths = NULL;
-	if (ev)
-	{
-		i = -1;
-		while (ev[++i] && !paths)
-		{
-			if (ft_strnstr(ev[i], "PATH=", 5) == ev[i])
-				paths = ft_split(ev[i] + 5, ':');
-		}
-		i = -1;
-		while (paths && paths[++i])
-		{
-			tmp = paths[i];
-			paths[i] = ft_strjoin(tmp, "/");
-			if (tmp)
-				free(tmp);
-		}
-		return (paths);
-	}
-	return (NULL);
-}
-
-int	get_pipes(t_infos *infos)
-{
-	int	i;
-	int	j;
-
-	i = -1;
-	while (++i < infos->ac - 4)
-	{
-		if (pipe((infos->fd)[i]) == -1)
-		{
-			j = -1;
-			while (++j < i)
-			{
-				close((infos->fd)[j][0]);
-				close((infos->fd)[j][1]);
-			}
-			return (-1);
-		}
-	}
-	return (0);
-}
-
-t_infos	*get_infos(int ac, char **av, char **ev)
-{
-	t_infos	*infos;
-
-	infos = malloc(sizeof(*infos));
-	if (!infos)
-		return (NULL);
-	infos->here_doc = 0;
-	if (!ft_strcmp(av[1], "here_doc"))
-		infos->here_doc = 1;
-	infos->ac = ac - infos->here_doc;
-	infos->av = av;
-	infos->ev = ev;
-	infos->paths = get_paths(ev);
-	if (infos->paths == NULL)
-		free_infos(infos, -1, "Failed to create PATHS variable");
-	if (get_pipes(infos) == -1)
-		free_infos(infos, -4, "Failed to create all pipes");
-	return (infos);
 }

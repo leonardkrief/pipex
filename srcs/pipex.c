@@ -6,43 +6,11 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 07:47:52 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 09:52:20 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/pipex.h"
-
-// si n >= 0, ferme tous les pipes sauf fd[n - 1][0] et fd[n][1]
-// si n < 0,  ferme tous les pipes sauf le read du dernier
-// renvoie -1 en cas d'erreur
-int	close_pipes(t_infos *infos, int n)
-{
-	int	i;
-	int	exno;
-
-	exno = 0;
-	i = -1;
-	if (n >= 0)
-	{
-		while (++i < infos->ac - 4)
-		{
-			
-			if (i != n - 1 && close((infos->fd)[i][0]) == -1)
-				exno = -1;
-			if (i != n && close((infos->fd)[i][1]) == -1)
-				exno = -1;
-		}
-		return (exno);
-	}
-	while (++i < infos->ac - 4)
-	{
-		if (close((infos->fd)[i][0]) == -1)
-			exno = -1;
-		if (close((infos->fd)[i][1]) == -1)
-			exno = -1;
-	}
-	return (exno);
-}
 
 // recupere dans un split la commande de argv[n] avec ses options
 // et verifie que la commande existe. Renvoie NULL en cas d'erreur
@@ -78,29 +46,25 @@ char	**get_cmd_split(t_infos *infos, int n)
 
 void	exec_cmd(t_infos *infos, char **cmdopts, int i)
 {
-	int	in;
-	int	out;
-
-	in = infos->infile;
+	infos->in = infos->infile;
 	if (i > 0)
-		in = infos->fd[i - 1][0];
-	out = infos->fd[i][1];
+		infos->in = infos->fd[i - 1][0];
+	infos->out = infos->fd[i][1];
 	if (i == infos->ac - 4)
-		out = infos->outfile;	
-	fprintf(stderr, "[%d] checking for errors: cmdopts[0] = %s\n", getpid(), cmdopts[0]);
+		infos->out = infos->outfile;
 	if (ft_strchr(cmdopts[0], '/') && access(cmdopts[0], F_OK) != 0)
 		free_tab_infos(cmdopts, infos, 12, cmdopts[0]);
 	else if (!ft_strchr(cmdopts[0], '/'))
 		free_tab_infos(cmdopts, infos, 11, NULL);
 	if (access(cmdopts[0], X_OK) != 0)
 		free_tab_infos(cmdopts, infos, 12, NULL);
-	if (dup2(in, STDIN_FILENO) == -1)
+	if (dup2(infos->in, STDIN_FILENO) == -1)
 		free_tab_infos(cmdopts, infos, 16, "Dup infile");
-	if (close(in) == -1)
+	if (close(infos->in) == -1)
 		free_tab_infos(cmdopts, infos, 16, "Infile");
-	if (dup2(out, STDOUT_FILENO) == -1)
+	if (dup2(infos->out, STDOUT_FILENO) == -1)
 		free_tab_infos(cmdopts, infos, 27, "Dup outfile");
-	if (close(out) == -1)
+	if (close(infos->out) == -1)
 		free_tab_infos(cmdopts, infos, 27, "Outfile");
 	if (close_pipes(infos, i) == -1)
 		free_tab_infos(cmdopts, infos, -4, "Pipes");
@@ -144,7 +108,7 @@ void	exec_process(t_infos *infos, int i)
 	{
 		if (!cmdopts)
 			free_tab_infos(cmdopts, infos, -4, "Malloc failed");
-		check_in_n_out(cmdopts, infos, i);		
+		check_in_n_out(cmdopts, infos, i);
 		exec_cmd(infos, cmdopts, i);
 	}
 	if (cmdopts)

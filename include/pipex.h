@@ -6,7 +6,7 @@
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/20 12:16:38 by lkrief            #+#    #+#             */
-/*   Updated: 2022/11/29 07:28:52 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/11/29 09:55:54 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,25 +35,27 @@ typedef struct s_infos{
 	pid_t	pids[PROCESS_NUM];
 	int		here_doc;
 	int		*i;
+	int		in;
+	int		out;
 }	t_infos;
 
-//t_infos.c
+//water.c
 void	*free_tab(char **to_be_free, int n);
 void	free_infos(t_infos *infos, int exno, char *str);
 void	*free_tab_str(char **to_be_free, char *str);
 void	free_tab_infos(char **cmdopts, t_infos *infos, int exno, char *str);
-char	**get_paths(char **ev);
+
+//bread.c
 int		get_pipes(t_infos *infos);
+char	**get_paths(char **ev);
 t_infos	*get_infos(int ac, char **av, char **ev);
+int		close_pipes(t_infos *infos, int n);
+void	here_doc(t_infos *infos, char *LIMITER, char *next_line);
 
 //pipex.c
-char	*ft_truncate(char *str, char c);
-int		close_pipes(t_infos *infos, int n);
 char	**get_cmd_split(t_infos *infos, int n);
 void	check_in_n_out(char **cmdopts, t_infos *infos, int i);
 void	exec_cmd(t_infos *infos, char **cmdopts, int i);
 void	exec_process(t_infos *infos, int i);
 
-
-void	here_doc(t_infos *infos, char *LIMITER, char* next_line);
 #endif
