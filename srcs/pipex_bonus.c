@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lkrief <lkrief@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/19 19:00:02 by lkrief            #+#    #+#             */
-/*   Updated: 2022/12/05 20:13:11 by lkrief           ###   ########.fr       */
+/*   Updated: 2022/12/05 19:28:09 by lkrief           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,11 +120,13 @@ int	main(int ac, char **av, char **ev)
 	int		i;
 	t_infos	*infos;
 
-	if (ac == 5)
+	if (ac >= 5)
 	{
 		infos = get_infos(ac, av, ev);
 		if (!infos)
 			exit(-1);
+		if (infos->here_doc)
+			here_doc(infos, av[2], NULL);
 		i = 1;
 		infos->i = &i;
 		while (++i < infos->ac - 1)
