@@ -18,10 +18,11 @@ Handle of multiple pipes
 $> < file1 cmd1 | cmd2 | cmd3 | ... | cmdn > file2
 
 $> ./pipex file1 cmd1 cmd2 cmd3 ... cmdn file2
-```
-Support `<<` and `>>`, when instead of `file1` is`here_doc`.
+```  
+
+Support `<<` when instead of `file1` is `here_doc`.
 ```bash
-$> cmd1 << LIMITER | cmd2 >> file2
+$> cmd1 << LIMITER | cmd2 > file2
 
 $> ./pipex here_doc LIMITER cmd1 cmd2 file2
 ```
